@@ -64,6 +64,15 @@ d$ethnicity_aggregated <- ifelse(d$assignment_to_treatment == 1,
                            d$Ethnicity.1, d$Ethnicity)
 d$stock_aggregated <- ifelse(d$assignment_to_treatment == 1, 
                            d$Stock_1.1, d$Stock_1)
+d$assignment_to_treatment_name <- ifelse(d$assignment_to_treatment == 1, "Treatment", "Control")
+
+d[d$gender_aggregated == ""]$gender_aggregated <- "No Data"
+d[d$investing_knowledge_aggregated == ""]$investing_knowledge_aggregated <- "No Data"
+d[d$age_aggregated == ""]$age_aggregated <- "No Data"
+d[d$education_aggregated == ""]$education_aggregated <- "No Data"
+d[d$household_income_aggregated == ""]$household_income_aggregated <- "No Data"
+d[d$ethnicity_aggregated == ""]$ethnicity_aggregated <- "No Data"
+d[d$stock_aggregated == ""]$stock_aggregated <- "No Data"
 ```
 
 ```{r}
@@ -77,20 +86,28 @@ sum(d$assignment_to_treatment)
 
 ```{r, include=TRUE}
 # Gender
-ggplot(d, aes(x = assignment_to_treatment, fill = gender_aggregated)) +
+ggplot(d, aes(x = assignment_to_treatment_name, fill = gender_aggregated)) +
   geom_bar() +
   ylab("Number of Participants") +
-  xlab("Assignment to Treatment") +
-  ggtitle("Gender Count by Assignment to Treatment") +
-  labs(fill = "Gender") + 
+  xlab("Assignment") +
+  ggtitle("Gender Count by Assignment") +
+  labs(fill = "Gender")
   scale_x_discrete(
-    "Assignment to Treatment",
-    labels=c("Control", "Treatment"),
-    limits=factor(0, 1))
+   "Assignment to Treatment",
+   labels=c("Control", "Treatment"),
+   limits=factor(0, 1))
 
 # Investing Knowledge
 ggplot(d, aes(x = assignment_to_treatment, fill = investing_knowledge_aggregated)) +
-  geom_bar()
+  geom_bar() +
+  ylab("Number of Participants") +
+  xlab("Assignment") +
+  ggtitle("Investing Knowledge Count by Assignment") +
+  labs(fill = "Investing Knowledge")
+  scale_x_discrete(
+   "Assignment to Treatment",
+   labels=c("Control", "Treatment"),
+   limits=factor(0, 1))
 
 # Age
 ggplot(d, aes(x = assignment_to_treatment, fill = age_aggregated)) +
