@@ -50,34 +50,34 @@ hist(as.numeric(d$Duration..in.seconds))
 
 ```{r, include=TRUE}
 d$assignment_to_treatment <-  ifelse(d$Age.1 == "", 0, 1)
-d$gender_aggregated <- ifelse(d$assignment_to_treatment == 1, 
+d$gender <- ifelse(d$assignment_to_treatment == 1, 
                               d$Gender.1, d$Gender)
-d$investing_knowledge_aggregated <- ifelse(d$assignment_to_treatment == 1, 
+d$investing_knowledge <- ifelse(d$assignment_to_treatment == 1, 
                                            d$Investing.knowledge.1, d$Investing.knowledge)
-d$age_aggregated <- ifelse(d$assignment_to_treatment == 1, 
+d$age <- ifelse(d$assignment_to_treatment == 1, 
                            d$Age.1, d$Age)
-d$education_aggregated <- ifelse(d$assignment_to_treatment == 1, 
+d$education <- ifelse(d$assignment_to_treatment == 1, 
                            d$Education.1, d$Education)
-d$household_income_aggregated <- ifelse(d$assignment_to_treatment == 1, 
+d$household_income <- ifelse(d$assignment_to_treatment == 1, 
                            d$Household.income.1, d$Household.income)
-d$ethnicity_aggregated <- ifelse(d$assignment_to_treatment == 1, 
+d$ethnicity <- ifelse(d$assignment_to_treatment == 1, 
                            d$Ethnicity.1, d$Ethnicity)
-d$stock_aggregated <- ifelse(d$assignment_to_treatment == 1, 
+d$stock <- ifelse(d$assignment_to_treatment == 1, 
                            d$Stock_1.1, d$Stock_1)
 d$assignment_to_treatment_name <- ifelse(d$assignment_to_treatment == 1, "Treatment", "Control")
 
-d[d$gender_aggregated == ""]$gender_aggregated <- "No Data"
-d[d$investing_knowledge_aggregated == ""]$investing_knowledge_aggregated <- "No Data"
-d[d$age_aggregated == ""]$age_aggregated <- "No Data"
-d[d$education_aggregated == ""]$education_aggregated <- "No Data"
-d[d$household_income_aggregated == ""]$household_income_aggregated <- "No Data"
-d[d$ethnicity_aggregated == ""]$ethnicity_aggregated <- "No Data"
-d[d$stock_aggregated == ""]$stock_aggregated <- "No Data"
+d[d$gender == ""]$gender <- "No Data"
+d[d$investing_knowledge == ""]$investing_knowledge <- "No Data"
+d[d$age == ""]$age <- "No Data"
+d[d$education == ""]$education <- "No Data"
+d[d$household_income == ""]$household_income <- "No Data"
+d[d$ethnicity == ""]$ethnicity <- "No Data"
+d[d$stock == ""]$stock <- "No Data"
 ```
 
 ```{r}
 attach(d)
-plot(as.numeric(d$Duration..in.seconds), stock_aggregated, main="Scatterplot Example",
+plot(as.numeric(d$Duration..in.seconds), stock, main="Scatterplot Example",
    xlab="time", ylab="conf", pch=19) 
 sum(d$assignment_to_treatment)
 ```
@@ -86,7 +86,7 @@ sum(d$assignment_to_treatment)
 
 ```{r, include=TRUE}
 # Gender
-ggplot(d, aes(x = assignment_to_treatment_name, fill = gender_aggregated)) +
+ggplot(d, aes(x = assignment_to_treatment_name, fill = gender)) +
   geom_bar() +
   ylab("Number of Participants") +
   xlab("Assignment") +
@@ -98,7 +98,7 @@ ggplot(d, aes(x = assignment_to_treatment_name, fill = gender_aggregated)) +
    limits=factor(0, 1))
 
 # Investing Knowledge
-ggplot(d, aes(x = assignment_to_treatment, fill = investing_knowledge_aggregated)) +
+ggplot(d, aes(x = assignment_to_treatment, fill = investing_knowledge)) +
   geom_bar() +
   ylab("Number of Participants") +
   xlab("Assignment") +
@@ -110,19 +110,19 @@ ggplot(d, aes(x = assignment_to_treatment, fill = investing_knowledge_aggregated
    limits=factor(0, 1))
 
 # Age
-ggplot(d, aes(x = assignment_to_treatment, fill = age_aggregated)) +
+ggplot(d, aes(x = assignment_to_treatment, fill = age)) +
   geom_bar()
 
 # Education
-ggplot(d, aes(x = assignment_to_treatment, fill = education_aggregated)) +
+ggplot(d, aes(x = assignment_to_treatment, fill = education)) +
   geom_bar()
 
 # Household Income
-ggplot(d, aes(x = assignment_to_treatment, fill = household_income_aggregated)) +
+ggplot(d, aes(x = assignment_to_treatment, fill = household_income)) +
   geom_bar()
 
 # Ethnicity
-ggplot(d, aes(x = assignment_to_treatment, fill = ethnicity_aggregated)) +
+ggplot(d, aes(x = assignment_to_treatment, fill = ethnicity)) +
   geom_bar()
 ```
 It looks pretty balanced.
@@ -130,7 +130,7 @@ It looks pretty balanced.
 ```{r}
 # Represent it
 
-ggplot(d, aes(x=as.numeric(stock_aggregated), fill=as.factor(assignment_to_treatment))) +
+ggplot(d, aes(x=as.numeric(stock), fill=as.factor(assignment_to_treatment))) +
   geom_density( color="#e9ecef", alpha=0.2, position = 'identity') +
   scale_fill_manual(values=c("green", "red")) +
   labs(fill="Assignment to Treatment") +
@@ -142,8 +142,8 @@ ggplot(d, aes(x=as.numeric(stock_aggregated), fill=as.factor(assignment_to_treat
 ### Average Treatment Effect Estimate
 
 ```{r}
-control <- as.numeric(d[d$assignment_to_treatment == 0]$stock_aggregated)
-treatment <- as.numeric(d[d$assignment_to_treatment == 1]$stock_aggregated)
+control <- as.numeric(d[d$assignment_to_treatment == 0]$stock)
+treatment <- as.numeric(d[d$assignment_to_treatment == 1]$stock)
 
 treatment_mean <- mean(treatment)
 control_mean <- mean(na.omit(control))
@@ -160,11 +160,11 @@ library(sandwich)
 library(lmtest)
 
 model <- lm(as.numeric(
-  stock_aggregated) ~ I(household_income_aggregated) +
-    I(gender_aggregated) +
-    I(age_aggregated) +
-    I(ethnicity_aggregated) +
-    I(investing_knowledge_aggregated),
+  stock) ~ I(household_income) +
+    I(gender) +
+    I(age) +
+    I(ethnicity) +
+    I(investing_knowledge),
             data=d)
 coef_se <- lmtest::coefci(model, vcov.=vcovHC(model, type="HC"))
 model_summary <- summary(model, se=coef_se)
