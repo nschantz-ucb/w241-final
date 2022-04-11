@@ -18,7 +18,7 @@ library(foreign)
 ```
 
 ```{r, include=FALSE}
-d <- read.csv(file = 'data/ESG Survey 3_April 8, 2022_10.20.csv')
+d <- read.csv(file = 'data/input/ESG Survey 3_April 8, 2022_10.20.csv')
 d <- data.table(d)
 colnames(d)
 ```
@@ -36,17 +36,19 @@ nrows <- nrow(d)
 
 d <- d[3:nrows,]
 d <- d[d$StartDate >= "2022-04-06 14:33:20"]
+d
 ```
 There are `r nrows` in this analysis.
 
 ```{r}
 hist(as.numeric(d$Duration..in.seconds))
 ```
+
 ### Covariate balance checks
 
 
 
-```{r, include=FALSE}
+```{r, include=TRUE}
 d$assignment_to_treatment <-  ifelse(d$Age.1 == "", 0, 1)
 d$gender_aggregated <- ifelse(d$assignment_to_treatment == 1, 
                               d$Gender.1, d$Gender)
@@ -64,12 +66,27 @@ d$stock_aggregated <- ifelse(d$assignment_to_treatment == 1,
                            d$Stock_1.1, d$Stock_1)
 ```
 
+```{r}
+attach(d)
+plot(as.numeric(d$Duration..in.seconds), stock_aggregated, main="Scatterplot Example",
+   xlab="time", ylab="conf", pch=19) 
+sum(d$assignment_to_treatment)
+```
+
 ### Covariate Balance Checks
 
-```{r, include=FALSE}
+```{r, include=TRUE}
 # Gender
 ggplot(d, aes(x = assignment_to_treatment, fill = gender_aggregated)) +
-  geom_bar()
+  geom_bar() +
+  ylab("Number of Participants") +
+  xlab("Assignment to Treatment") +
+  ggtitle("Gender Count by Assignment to Treatment") +
+  labs(fill = "Gender") + 
+  scale_x_discrete(
+    "Assignment to Treatment",
+    labels=c("Control", "Treatment"),
+    limits=factor(0, 1))
 
 # Investing Knowledge
 ggplot(d, aes(x = assignment_to_treatment, fill = investing_knowledge_aggregated)) +
@@ -93,6 +110,18 @@ ggplot(d, aes(x = assignment_to_treatment, fill = ethnicity_aggregated)) +
 ```
 It looks pretty balanced.
 
+```{r}
+# Represent it
+
+ggplot(d, aes(x=as.numeric(stock_aggregated), fill=as.factor(assignment_to_treatment))) +
+  geom_density( color="#e9ecef", alpha=0.2, position = 'identity') +
+  scale_fill_manual(values=c("green", "red")) +
+  labs(fill="Assignment to Treatment") +
+  xlab("Likelihood to Invest in Presented Company") + 
+  ylab("Number of Participants") +
+  ggtitle("Comparison of Distributions of Outcome")
+```
+
 ### Average Treatment Effect Estimate
 
 ```{r}
@@ -108,3 +137,19 @@ t.test(control, treatment)
 ```
 
 There is a 6% decrease in the likelihood of investing in a stock given the low ESG score (3.8/10) in the treatment.
+
+```{r}
+library(sandwich)
+library(lmtest)
+
+model <- lm(as.numeric(
+  stock_aggregated) ~ I(household_income_aggregated) +
+    I(gender_aggregated) +
+    I(age_aggregated) +
+    I(ethnicity_aggregated) +
+    I(investing_knowledge_aggregated),
+            data=d)
+coef_se <- lmtest::coefci(model, vcov.=vcovHC(model, type="HC"))
+model_summary <- summary(model, se=coef_se)
+model_summary
+```
