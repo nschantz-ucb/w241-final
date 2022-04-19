@@ -1,8 +1,6 @@
 ---
-title: "Problem Set 3"
-author: "Alex, Micah, Scott, and David"
-date: "12/01/2021"
-name: Tina Fang
+title: "Final Analysis"
+date: "04/18/2022"
 output: 
   pdf_document: 
     number_sections: true
