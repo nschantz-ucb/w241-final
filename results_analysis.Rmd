@@ -28,11 +28,6 @@ knitr::opts_chunk$set(echo = FALSE)
 library(stargazer)
 ```
 
-Here is the latex table in a PDF document:
-
-```{r mylatextable, include=TRUE, results = "asis"}
-stargazer(attitude, header=FALSE, type = 'latex')
-```
 
 ```{r}
 # tinytex::install_tinytex()
@@ -222,6 +217,73 @@ d
 ```
 There is a 6% decrease in the likelihood of investing in a stock given the low ESG score (3.8/10) in the treatment.
 
+
+```{r}
+model <- lm(as.numeric(
+  stock) ~ assignment_to_treatment,
+            data=d)
+coef_se <- lmtest::coefci(model, vcov.=vcovHC(model, type="HC"))
+model_summary <- summary(model, se=coef_se)
+model_summary
+```
+
+
+```{r}
+covariate_labels <- c("Negative ESG Information",
+                      "Household Income, $25-$50k",
+                      "Household Income, $50-$100k",
+                      "Household Income, $100-$150k", 
+                      "Household Income, 150k+",
+                      "Gender, Male",
+                      "Gender, Non-binary",
+                      "Age, 20-59",
+                      "Age, 60+",
+                      "Age, No Data",
+                      "Ethnicity, Black",
+                      "Ethnicity, Hispanic",
+                      "Ethnicity, Native American",
+                      "Ethnicity, White",
+                      "Ethnicity, Other",
+                      "Investing Knowledge, 1-5 years",
+                      "Investing Knowledge, 5-10 years",
+                      "Investing Knowledge, 10+ years",
+                      "Education, High School",
+                      "Education, Undergraduate",
+                      "Education, Postgraduate")
+```
+
+
+```{r}
+model_3 <- lm(as.numeric(
+  stock) ~ assignment_to_treatment + 
+    factor(household_income, levels=c("<$25k", "$25-$50k", "$50-$100k", "$100-$150k", "$150k+")) +
+    factor(gender) +
+    factor(age) +
+    factor(ethnicity, levels=c("Asian", "Black", "Hispanic", "Native American", "White", "Other")) +
+    factor(investing_knowledge, levels=c("0-1 year", "1-5 years", "5-10 years", "10+ years")) +
+    factor(education, levels=c("Associate", "High School", "Undergraduate", "Postgraduate")), data=d)
+
+d$investing_knowledge
+
+coef_se <- lmtest::coefci(model_3, vcov.=vcovHC(model_3, type="HC"))
+model_summary_3 <- summary(model_3, se=coef_se)
+model_summary_3
+
+```
+
+```{r}
+
+```
+
+```{r model_summary_1, include=TRUE, results = "asis"}
+
+stargazer(model, model_3, title="Impact of Negative ESG Information on the Likelihood to Invest in Stock",
+dep.var.labels=c("Likelihood to Invest in Stock"),
+covariate.labels=covariate_labels,
+omit.stat=c("LL","ser","f"), single.row=TRUE)
+
+```
+
 ```{r}
 library(sandwich)
 library(lmtest)
@@ -241,14 +303,6 @@ model_summary_2
 ```
 
 
-```{r}
-model <- lm(as.numeric(
-  stock) ~ assignment_to_treatment,
-            data=d)
-coef_se <- lmtest::coefci(model, vcov.=vcovHC(model, type="HC"))
-model_summary <- summary(model, se=coef_se)
-model_summary
-```
 
 ```{r}
 get_power <- function(mean1, mean2, N, sigma, alpha) {
@@ -313,8 +367,41 @@ get_power(mean1=mean1, mean2=mean2, N=454, sigma=sigma, alpha=alpha)
 t.test(control, treatment)
 ```
 
-```{r model_summary, include=TRUE, results = "asis"}
-stargazer(model, model_2, title="Results", align=TRUE)
+```{r}
+model_2
 ```
 
+```{r}
+covariate_labels <- c("Negative ESG Information", 
+            "Household Income, $100-$150k", 
+            "Household Income, 150k+",
+            "Household Income, $25-$50k",
+            "Household Income, $50-$100k",
+            "Gender, Male",
+            "Gender, Non-binary",
+            "Age, 20-59",
+            "Age, 60+",
+            "Age, No Data",
+            "Ethnicity, Black",
+            "Ethnicity, Hispanic",
+            "Ethnicity, Native American",
+            "Ethnicity, Other",
+            "Ethnicity, White",
+            "Investing Knowledge, 1-5 years",
+            "Investing Knowledge, 10+ years",
+            "Investing Knowledge, 5-10 years",
+            "Education, High School",
+            "Education, Postgraduate",
+            "Education, Undergraduate"
+            )
+```
 
+```{r model_summary, include=TRUE, results = "asis"}
+# stargazer(model, model_2, title="Results", align=TRUE)
+
+
+stargazer(model, model_2, title="Impact of Negative ESG Information on the Likelihood to Invest in Stock",
+dep.var.labels=c("Likelihood to Invest in Stock"),
+covariate.labels=covariate_labels,
+omit.stat=c("LL","ser","f"), single.row=TRUE)
+```
